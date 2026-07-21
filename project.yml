@@ -16,6 +16,9 @@ packages:
   SwiftNIOSSL:
     url: https://github.com/apple/swift-nio-ssl.git
     from: 2.37.2
+  SwiftCollections:
+    url: https://github.com/apple/swift-collections.git
+    from: 1.6.0
 targets:
   PokerCore:
     type: framework
@@ -33,6 +36,8 @@ targets:
         product: NIOPosix
       - package: SwiftNIOSSL
         product: NIOSSL
+      - package: SwiftCollections
+        product: DequeModule
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.poker.core
@@ -43,6 +48,8 @@ targets:
     platform: macOS
     sources:
       - Sources/PokerDesktop
+      - path: Resources/Assets.xcassets
+        buildPhase: resources
     dependencies:
       - target: PokerCore_macOS
     settings:
@@ -50,6 +57,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.poker.desktop
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Poker
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
 
   PokerMobile:
@@ -57,6 +65,8 @@ targets:
     platform: iOS
     sources:
       - Apps/iOS
+      - path: Resources/Assets.xcassets
+        buildPhase: resources
     dependencies:
       - target: PokerCore_iOS
       - target: PokerPacketTunnel
@@ -66,6 +76,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.poker.mobile
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Poker
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Apps/iOS/PokerMobile.entitlements
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1,2"

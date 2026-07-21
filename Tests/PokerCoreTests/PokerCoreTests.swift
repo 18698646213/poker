@@ -99,6 +99,105 @@ import Testing
     #expect(object["log"] != nil)
 }
 
+@Test func exportsMultipleSessionsInOneHARArchive() throws {
+    let sessions = (0..<3).map {
+        CaptureSession(
+            method: "GET",
+            url: "http://example.com/\($0)",
+            statusCode: 200,
+            state: .completed
+        )
+    }
+    let data = try HARExporter.data(for: sessions)
+    let object = try #require(
+        JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+    let log = try #require(object["log"] as? [String: Any])
+    let entries = try #require(log["entries"] as? [[String: Any]])
+
+    #expect(entries.count == sessions.count)
+}
+
+@Test func exportsMultipleSessionsAsMarkdown() throws {
+    let sessions = [
+        CaptureSession(
+            method: "GET",
+            url: "http://example.com/first",
+            statusCode: 200,
+            responseBody: Data("first response".utf8),
+            state: .completed
+        ),
+        CaptureSession(
+            method: "POST",
+            url: "http://example.com/second",
+            requestBody: Data("second request".utf8),
+            statusCode: 201,
+            state: .completed
+        )
+    ]
+
+    let markdown = try #require(
+        String(data: MarkdownExporter.data(for: sessions), encoding: .utf8)
+    )
+
+    #expect(markdown.contains("# Poker 日志"))
+    #expect(markdown.contains("## 1. GET http://example.com/first"))
+    #expect(markdown.contains("first response"))
+    #expect(markdown.contains("## 2. POST http://example.com/second"))
+    #expect(markdown.contains("second request"))
+}
+
+@Test func exportsRequestAsCURL() {
+    let session = CaptureSession(
+        method: "POST",
+        url: "https://example.com/users?name=O'Reilly",
+        requestHeaders: [
+            HTTPHeader(name: "Content-Type", value: "application/json"),
+            HTTPHeader(name: "Content-Length", value: "17")
+        ],
+        requestBody: Data(#"{"name":"O'Reilly"}"#.utf8)
+    )
+
+    let command = CURLExporter.command(for: session)
+
+    #expect(command.contains("curl"))
+    #expect(command.contains("--request 'POST'"))
+    #expect(command.contains("--header 'Content-Type: application/json'"))
+    #expect(!command.contains("Content-Length"))
+    #expect(command.contains(#"O'\''Reilly"#))
+}
+
+@Test func matchesConfiguredInterceptDomains() {
+    let allDomains = InterceptConfiguration()
+    #expect(allDomains.matches(url: "https://anything.example/path"))
+
+    let configured = InterceptConfiguration(
+        domains: ["example.com", " api.test.local "]
+    )
+    #expect(configured.matches(url: "https://example.com/users"))
+    #expect(configured.matches(url: "https://cdn.example.com/image.png"))
+    #expect(configured.matches(url: "http://api.test.local/v1"))
+    #expect(!configured.matches(url: "https://notexample.com/users"))
+    #expect(!configured.matches(url: "https://example.org/users"))
+}
+
+@Test func appliesWeakNetworkSpeedLimitsOnlyWhenEnabled() {
+    let disabled = WeakNetworkConfiguration(
+        uploadBytesPerSecond: 1_024,
+        downloadBytesPerSecond: 2_048
+    )
+    #expect(disabled.effectiveUploadBytesPerSecond == nil)
+    #expect(disabled.effectiveDownloadBytesPerSecond == nil)
+
+    let enabled = WeakNetworkConfiguration(
+        isEnabled: true,
+        uploadBytesPerSecond: 1_024,
+        downloadBytesPerSecond: 2_048
+    )
+    #expect(enabled.effectiveUploadBytesPerSecond == 1_024)
+    #expect(enabled.effectiveDownloadBytesPerSecond == 2_048)
+}
+
 @Test func createsRootAndHostCertificates() throws {
     let directory = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)

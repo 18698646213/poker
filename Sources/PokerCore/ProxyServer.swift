@@ -28,6 +28,8 @@ public final class ProxyServer: @unchecked Sendable {
     private let lock = NSLock()
     private let eventHandler: EventHandler
     private var rules: [RewriteRule] = []
+    private var interceptConfiguration = InterceptConfiguration()
+    private var weakNetworkConfiguration = WeakNetworkConfiguration()
     private var serverChannel: Channel?
     private var eventLoopGroup: MultiThreadedEventLoopGroup?
     private var blockingPool: NIOThreadPool?
@@ -85,6 +87,14 @@ public final class ProxyServer: @unchecked Sendable {
                         plainEncoder: encoder,
                         plainDecoder: decoder,
                         rulesProvider: { [weak self] in self?.rulesSnapshot() ?? [] },
+                        interceptConfigurationProvider: {
+                            [weak self] in self?.interceptConfigurationSnapshot()
+                                ?? InterceptConfiguration()
+                        },
+                        weakNetworkConfigurationProvider: {
+                            [weak self] in self?.weakNetworkConfigurationSnapshot()
+                                ?? WeakNetworkConfiguration()
+                        },
                         eventHandler: self.eventHandler
                     )
                     do {
@@ -132,6 +142,22 @@ public final class ProxyServer: @unchecked Sendable {
         lock.unlock()
     }
 
+    public func updateInterceptConfiguration(
+        _ configuration: InterceptConfiguration
+    ) {
+        lock.lock()
+        interceptConfiguration = configuration
+        lock.unlock()
+    }
+
+    public func updateWeakNetworkConfiguration(
+        _ configuration: WeakNetworkConfiguration
+    ) {
+        lock.lock()
+        weakNetworkConfiguration = configuration
+        lock.unlock()
+    }
+
     public func rootCertificateData() throws -> Data {
         try CertificateAuthority().rootCertificateData()
     }
@@ -140,6 +166,18 @@ public final class ProxyServer: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         return rules
+    }
+
+    private func interceptConfigurationSnapshot() -> InterceptConfiguration {
+        lock.lock()
+        defer { lock.unlock() }
+        return interceptConfiguration
+    }
+
+    private func weakNetworkConfigurationSnapshot() -> WeakNetworkConfiguration {
+        lock.lock()
+        defer { lock.unlock() }
+        return weakNetworkConfiguration
     }
 }
 
@@ -169,6 +207,10 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
     private let plainEncoder: HTTPResponseEncoder
     private let plainDecoder: ByteToMessageHandler<HTTPRequestDecoder>
     private let rulesProvider: @Sendable () -> [RewriteRule]
+    private let interceptConfigurationProvider:
+        @Sendable () -> InterceptConfiguration
+    private let weakNetworkConfigurationProvider:
+        @Sendable () -> WeakNetworkConfiguration
     private let eventHandler: ProxyServer.EventHandler
 
     private var mode: Mode = .forwardProxy
@@ -185,6 +227,10 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
         plainEncoder: HTTPResponseEncoder,
         plainDecoder: ByteToMessageHandler<HTTPRequestDecoder>,
         rulesProvider: @escaping @Sendable () -> [RewriteRule],
+        interceptConfigurationProvider:
+            @escaping @Sendable () -> InterceptConfiguration,
+        weakNetworkConfigurationProvider:
+            @escaping @Sendable () -> WeakNetworkConfiguration,
         eventHandler: @escaping ProxyServer.EventHandler
     ) {
         self.certificateAuthority = certificateAuthority
@@ -194,6 +240,8 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
         self.plainEncoder = plainEncoder
         self.plainDecoder = plainDecoder
         self.rulesProvider = rulesProvider
+        self.interceptConfigurationProvider = interceptConfigurationProvider
+        self.weakNetworkConfigurationProvider = weakNetworkConfigurationProvider
         self.eventHandler = eventHandler
     }
 
@@ -273,16 +321,72 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
         )
         eventHandler(.inserted(session))
 
-        var upstreamHead = head
-        upstreamHead.uri = originForm(rewrittenURL)
-        upstreamHead.headers = nioHeaders(headers)
+        let configuration = interceptConfigurationProvider()
+        let canEditBody = bodyData.isEmpty ||
+            String(data: bodyData, encoding: .utf8) != nil
+        if configuration.interceptRequests,
+           configuration.matches(url: session.url),
+           !session.isWebSocket,
+           canEditBody {
+            context.channel.setOption(
+                ChannelOptions.autoRead,
+                value: false
+            ).whenFailure {
+                context.fireErrorCaught($0)
+            }
+            eventHandler(
+                .intercepted(
+                    InterceptedSession(phase: .request, session: session),
+                    resume: { [weak self, weak context] editedSession in
+                        guard let self, let context else { return }
+                        context.eventLoop.execute {
+                            self.enqueueRequest(
+                                session: editedSession,
+                                originalHead: head,
+                                fallbackDestination: rewrittenDestination,
+                                context: context
+                            )
+                            context.channel.setOption(
+                                ChannelOptions.autoRead,
+                                value: true
+                            ).whenComplete { _ in
+                                context.read()
+                            }
+                        }
+                    }
+                )
+            )
+        } else {
+            enqueueRequest(
+                session: session,
+                originalHead: head,
+                fallbackDestination: rewrittenDestination,
+                context: context
+            )
+        }
+    }
+
+    private func enqueueRequest(
+        session: CaptureSession,
+        originalHead: NIOHTTP1.HTTPRequestHead,
+        fallbackDestination: (host: String, port: Int, usesTLS: Bool),
+        context: ChannelHandlerContext
+    ) {
+        let destination = destination(
+            from: session.url,
+            fallback: fallbackDestination
+        )
+        var upstreamHead = originalHead
+        upstreamHead.method = HTTPMethod(rawValue: session.method)
+        upstreamHead.uri = originForm(session.url)
+        upstreamHead.headers = nioHeaders(session.requestHeaders)
         upstreamHead.headers.remove(name: "Proxy-Connection")
         upstreamHead.headers.replaceOrAdd(
             name: "Host",
             value: authority(
-                host: rewrittenDestination.host,
-                port: rewrittenDestination.port,
-                usesTLS: rewrittenDestination.usesTLS
+                host: destination.host,
+                port: destination.port,
+                usesTLS: destination.usesTLS
             )
         )
         upstreamHead.headers.replaceOrAdd(name: "Connection", value: "close")
@@ -290,25 +394,28 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
             name: "Accept-Encoding",
             value: "identity"
         )
-        if bodyData.isEmpty {
+        if session.requestBody.isEmpty {
             upstreamHead.headers.remove(name: "Content-Length")
         } else {
             upstreamHead.headers.replaceOrAdd(
                 name: "Content-Length",
-                value: String(bodyData.count)
+                value: String(session.requestBody.count)
             )
         }
 
         pendingRequests.append(
             PendingRequest(
                 head: upstreamHead,
-                body: body,
-                host: rewrittenDestination.host,
-                port: rewrittenDestination.port,
-                usesTLS: rewrittenDestination.usesTLS,
+                body: context.channel.allocator.buffer(
+                    bytes: session.requestBody
+                ),
+                host: destination.host,
+                port: destination.port,
+                usesTLS: destination.usesTLS,
                 session: session
             )
         )
+        eventHandler(.updated(session))
         pump(context: context)
     }
 
@@ -495,20 +602,7 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
             guard let self else { return }
             switch result {
             case let .success(channel):
-                channel.write(
-                    HTTPClientRequestPart.head(request.head),
-                    promise: nil
-                )
-                if request.body.readableBytes > 0 {
-                    channel.write(
-                        HTTPClientRequestPart.body(.byteBuffer(request.body)),
-                        promise: nil
-                    )
-                }
-                channel.writeAndFlush(
-                    HTTPClientRequestPart.end(nil),
-                    promise: nil
-                )
+                self.sendRequest(request, to: channel)
             case let .failure(error):
                 self.handleUpstreamResult(
                     .failure(error),
@@ -516,6 +610,73 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
                     context: context
                 )
             }
+        }
+    }
+
+    private func sendRequest(_ request: PendingRequest, to channel: Channel) {
+        let configuration = weakNetworkConfigurationProvider()
+        guard let speed = configuration.effectiveUploadBytesPerSecond,
+              !request.session.requestBody.isEmpty
+        else {
+            channel.write(
+                HTTPClientRequestPart.head(request.head),
+                promise: nil
+            )
+            if request.body.readableBytes > 0 {
+                channel.write(
+                    HTTPClientRequestPart.body(.byteBuffer(request.body)),
+                    promise: nil
+                )
+            }
+            channel.writeAndFlush(HTTPClientRequestPart.end(nil), promise: nil)
+            return
+        }
+
+        channel.writeAndFlush(
+            HTTPClientRequestPart.head(request.head),
+            promise: nil
+        )
+        writeRequestBody(
+            request.session.requestBody,
+            offset: 0,
+            bytesPerSecond: speed,
+            channel: channel
+        )
+    }
+
+    private func writeRequestBody(
+        _ body: Data,
+        offset: Int,
+        bytesPerSecond: Int,
+        channel: Channel
+    ) {
+        guard offset < body.count else {
+            channel.writeAndFlush(HTTPClientRequestPart.end(nil), promise: nil)
+            return
+        }
+
+        let chunkSize = throttledChunkSize(bytesPerSecond: bytesPerSecond)
+        let end = min(offset + chunkSize, body.count)
+        let chunk = body[offset..<end]
+        channel.eventLoop.scheduleTask(
+            in: throttleDelay(
+                byteCount: chunk.count,
+                bytesPerSecond: bytesPerSecond
+            )
+        ) { [weak self, weak channel] in
+            guard let self, let channel else { return }
+            channel.writeAndFlush(
+                HTTPClientRequestPart.body(
+                    .byteBuffer(channel.allocator.buffer(bytes: chunk))
+                ),
+                promise: nil
+            )
+            self.writeRequestBody(
+                body,
+                offset: end,
+                bytesPerSecond: bytesPerSecond,
+                channel: channel
+            )
         }
     }
 
@@ -542,55 +703,197 @@ private final class ProxyFrontendHandler: ChannelInboundHandler, RemovableChanne
                     $0.name.caseInsensitiveCompare("Connection") == .orderedSame
             }
 
-            let hasBody = responseMayHaveBody(
-                method: request.head.method,
-                status: response.head.status
-            )
-            if hasBody {
-                headers.append(
-                    HTTPHeader(name: "Content-Length", value: String(body.count))
-                )
-            }
-            headers.append(HTTPHeader(name: "Connection", value: "keep-alive"))
+            var interceptedSession = request.session
+            interceptedSession.statusCode = Int(response.head.status.code)
+            interceptedSession.responseHeaders = headers
+            interceptedSession.responseBody = body
 
-            let responseHead = NIOHTTP1.HTTPResponseHead(
-                version: response.head.version,
-                status: response.head.status,
-                headers: nioHeaders(headers)
-            )
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            if hasBody, !body.isEmpty {
-                context.write(
-                    wrapOutboundOut(
-                        .body(.byteBuffer(context.channel.allocator.buffer(bytes: body)))
-                    ),
-                    promise: nil
+            let configuration = interceptConfigurationProvider()
+            let canEditBody = body.isEmpty ||
+                String(data: body, encoding: .utf8) != nil
+            if configuration.interceptResponses,
+               configuration.matches(url: request.session.url),
+               !request.session.isWebSocket,
+               canEditBody {
+                eventHandler(
+                    .intercepted(
+                        InterceptedSession(
+                            phase: .response,
+                            session: interceptedSession
+                        ),
+                        resume: { [weak self, weak context] editedSession in
+                            guard let self, let context else { return }
+                            context.eventLoop.execute {
+                                self.writeResponse(
+                                    session: editedSession,
+                                    version: response.head.version,
+                                    request: request,
+                                    context: context
+                                )
+                            }
+                        }
+                    )
                 )
-            }
-            let promise = context.eventLoop.makePromise(of: Void.self)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: promise)
-            promise.futureResult.whenComplete { [weak self] writeResult in
-                guard let self else { return }
-                var completed = request.session
-                completed.duration = Date().timeIntervalSince(
-                    request.session.startedAt
+            } else {
+                writeResponse(
+                    session: interceptedSession,
+                    version: response.head.version,
+                    request: request,
+                    context: context
                 )
-                completed.statusCode = Int(response.head.status.code)
-                completed.responseHeaders = headers
-                completed.responseBody = hasBody ? body : Data()
-                completed.state = writeResult.isSuccess ? .completed : .failed
-                if case let .failure(error) = writeResult {
-                    completed.errorDescription = error.localizedDescription
-                }
-                self.eventHandler(.updated(completed))
-                self.requestInFlight = false
-                self.pump(context: context)
             }
         case let .failure(error):
             fail(session: request.session, error: error, context: context)
             requestInFlight = false
             pump(context: context)
         }
+    }
+
+    private func writeResponse(
+        session: CaptureSession,
+        version: HTTPVersion,
+        request: PendingRequest,
+        context: ChannelHandlerContext
+    ) {
+        let status = HTTPResponseStatus(statusCode: session.statusCode ?? 200)
+        var headers = session.responseHeaders
+        headers.removeAll {
+            $0.name.caseInsensitiveCompare("Content-Length") == .orderedSame ||
+                $0.name.caseInsensitiveCompare("Transfer-Encoding") == .orderedSame ||
+                $0.name.caseInsensitiveCompare("Connection") == .orderedSame
+        }
+        let hasBody = responseMayHaveBody(
+            method: request.head.method,
+            status: status
+        )
+        if hasBody {
+            headers.append(
+                HTTPHeader(
+                    name: "Content-Length",
+                    value: String(session.responseBody.count)
+                )
+            )
+        }
+        headers.append(HTTPHeader(name: "Connection", value: "keep-alive"))
+
+        let responseHead = NIOHTTP1.HTTPResponseHead(
+            version: version,
+            status: status,
+            headers: nioHeaders(headers)
+        )
+        let promise = context.eventLoop.makePromise(of: Void.self)
+        promise.futureResult.whenComplete { [weak self] writeResult in
+            guard let self else { return }
+            var completed = session
+            completed.duration = Date().timeIntervalSince(
+                request.session.startedAt
+            )
+            completed.responseHeaders = headers
+            completed.responseBody = hasBody ? session.responseBody : Data()
+            completed.state = writeResult.isSuccess ? .completed : .failed
+            if case let .failure(error) = writeResult {
+                completed.errorDescription = error.localizedDescription
+            }
+            self.eventHandler(.updated(completed))
+            self.requestInFlight = false
+            self.pump(context: context)
+        }
+
+        let configuration = weakNetworkConfigurationProvider()
+        if hasBody,
+           !session.responseBody.isEmpty,
+           let speed = configuration.effectiveDownloadBytesPerSecond {
+            context.writeAndFlush(
+                wrapOutboundOut(.head(responseHead)),
+                promise: nil
+            )
+            writeResponseBody(
+                session.responseBody,
+                offset: 0,
+                bytesPerSecond: speed,
+                context: context,
+                endPromise: promise
+            )
+        } else {
+            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
+            if hasBody, !session.responseBody.isEmpty {
+                context.write(
+                    wrapOutboundOut(
+                        .body(
+                            .byteBuffer(
+                                context.channel.allocator.buffer(
+                                    bytes: session.responseBody
+                                )
+                            )
+                        )
+                    ),
+                    promise: nil
+                )
+            }
+            context.writeAndFlush(
+                wrapOutboundOut(.end(nil)),
+                promise: promise
+            )
+        }
+    }
+
+    private func writeResponseBody(
+        _ body: Data,
+        offset: Int,
+        bytesPerSecond: Int,
+        context: ChannelHandlerContext,
+        endPromise: EventLoopPromise<Void>
+    ) {
+        guard offset < body.count else {
+            context.writeAndFlush(
+                wrapOutboundOut(.end(nil)),
+                promise: endPromise
+            )
+            return
+        }
+
+        let chunkSize = throttledChunkSize(bytesPerSecond: bytesPerSecond)
+        let end = min(offset + chunkSize, body.count)
+        let chunk = body[offset..<end]
+        context.eventLoop.scheduleTask(
+            in: throttleDelay(
+                byteCount: chunk.count,
+                bytesPerSecond: bytesPerSecond
+            )
+        ) { [weak self, weak context] in
+            guard let self, let context else { return }
+            context.writeAndFlush(
+                self.wrapOutboundOut(
+                    .body(
+                        .byteBuffer(
+                            context.channel.allocator.buffer(bytes: chunk)
+                        )
+                    )
+                ),
+                promise: nil
+            )
+            self.writeResponseBody(
+                body,
+                offset: end,
+                bytesPerSecond: bytesPerSecond,
+                context: context,
+                endPromise: endPromise
+            )
+        }
+    }
+
+    private func throttledChunkSize(bytesPerSecond: Int) -> Int {
+        max(1, min(16 * 1_024, bytesPerSecond / 10))
+    }
+
+    private func throttleDelay(
+        byteCount: Int,
+        bytesPerSecond: Int
+    ) -> TimeAmount {
+        let nanoseconds = Int64(
+            Double(byteCount) / Double(bytesPerSecond) * 1_000_000_000
+        )
+        return .nanoseconds(max(1, nanoseconds))
     }
 
     private func sendRootCertificate(context: ChannelHandlerContext) {

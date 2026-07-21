@@ -7,8 +7,8 @@ public enum CaptureState: String, Codable, Sendable {
 }
 
 public struct HTTPHeader: Codable, Hashable, Sendable {
-    public let name: String
-    public let value: String
+    public var name: String
+    public var value: String
 
     public init(name: String, value: String) {
         self.name = name
@@ -62,7 +62,65 @@ public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-public enum SessionEvent: Sendable {
+public enum InterceptPhase: String, Sendable {
+    case request
+    case response
+}
+
+public struct InterceptedSession: Identifiable, Sendable {
+    public let phase: InterceptPhase
+    public let session: CaptureSession
+
+    public var id: CaptureSession.ID { session.id }
+
+    public init(phase: InterceptPhase, session: CaptureSession) {
+        self.phase = phase
+        self.session = session
+    }
+}
+
+public struct InterceptConfiguration: Sendable {
+    public var interceptRequests: Bool
+    public var interceptResponses: Bool
+    public var domains: [String]
+
+    public init(
+        interceptRequests: Bool = false,
+        interceptResponses: Bool = false,
+        domains: [String] = []
+    ) {
+        self.interceptRequests = interceptRequests
+        self.interceptResponses = interceptResponses
+        self.domains = domains
+    }
+
+    public func matches(url: String) -> Bool {
+        let configuredDomains = domains.compactMap(Self.normalizedDomain)
+        guard !configuredDomains.isEmpty else {
+            return true
+        }
+        guard let host = URLComponents(string: url)?.host?.lowercased() else {
+            return false
+        }
+        return configuredDomains.contains {
+            host == $0 || host.hasSuffix(".\($0)")
+        }
+    }
+
+    private static func normalizedDomain(_ domain: String) -> String? {
+        let normalized = domain
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return normalized.isEmpty ? nil : normalized
+    }
+}
+
+public enum SessionEvent: @unchecked Sendable {
     case inserted(CaptureSession)
     case updated(CaptureSession)
+    case intercepted(
+        InterceptedSession,
+        resume: (CaptureSession) -> Void
+    )
 }

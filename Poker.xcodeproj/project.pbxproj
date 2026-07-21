@@ -13,15 +13,18 @@
 		136EB7989CEFF8B05B7564D7 /* PokerPacketTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F8E0983D307E4922EDED4559 /* PokerPacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		236231DA0C911E8931850F22 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD9AB59FC723B2B1C0F32B3 /* CaptureSession.swift */; };
 		264A281BA82BB9B160C065D3 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 3F7B476D275DAF0E4F7BED8B /* NIOPosix */; };
+		344E3309EEAE9C1711F7C563 /* CURLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7029F91D59A6D8D8268B7DED /* CURLExporter.swift */; };
 		37CE15B17435567B7BDE1D27 /* HTTPCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81315EE1BF6290F2AC76BCF4 /* HTTPCodec.swift */; };
 		3B2320AA86754564FA77D49C /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD9AB59FC723B2B1C0F32B3 /* CaptureSession.swift */; };
 		3DC6E9E7AD3032B164980D6C /* HAR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130FC3EE9E078108659291D9 /* HAR.swift */; };
 		4826ADEBDAC03EEE36F98E70 /* ProxyServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DA73024F829A2D5597ECEE /* ProxyServer.swift */; };
 		4B16E3C5920FC77AC928EE9B /* PokerDesktopApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AF88A6927D62CDD702812F /* PokerDesktopApp.swift */; };
+		552D25563C64E89BB4F80C70 /* MarkdownExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A7D6F8B4CBD7A59EC5DEB3 /* MarkdownExporter.swift */; };
 		60A5A3040C72F082EB9B097C /* PokerCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE95840E1792B284740C5951 /* PokerCore.framework */; };
 		687FB1599ED3243F3763DAB7 /* CertificateAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E79A72DB3153A14A597FF54 /* CertificateAuthority.swift */; };
 		6FBC38B899D2D4701209B5D2 /* ProxyServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DA73024F829A2D5597ECEE /* ProxyServer.swift */; };
 		7380D3FD600CCF6B631EA33B /* RewriteRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D1463BE29E6A437CE10B12 /* RewriteRule.swift */; };
+		7573378FC33176379303ABF2 /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = B237B1EAF81B9F3B5ADAD760 /* DequeModule */; };
 		7947970EAC101F02D9EF68DE /* PokerMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 343B134A26D45BAD2A3161B6 /* PokerMobileApp.swift */; };
 		81DA94CA31274193A6929141 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 043F6404927510EA731CB76B /* NIOSSL */; };
 		8EF8235F70D574D97B98E26D /* PokerCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A88D73F6C5C39712F0073B /* PokerCore.framework */; };
@@ -31,13 +34,20 @@
 		A0AE42C47F1930F64B15222F /* PokerCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 95A88D73F6C5C39712F0073B /* PokerCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A37D7F4CA54CF5A1B261B959 /* RewriteRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D1463BE29E6A437CE10B12 /* RewriteRule.swift */; };
 		B9C13478231220EF48640194 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 6E95C290DA17DBF68505BEFA /* NIOPosix */; };
+		BAE5A8DBDA908B9CEAFDA3F9 /* WeakNetworkConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4B3396BF1630E0B6947F8A4 /* WeakNetworkConfiguration.swift */; };
+		BEDA6AF7CED132C7E8CABDED /* MarkdownExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A7D6F8B4CBD7A59EC5DEB3 /* MarkdownExporter.swift */; };
 		BFAD6B3B5A6433E017903221 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 8A21527FD6FC7D89D66AB9AB /* NIOSSL */; };
 		C0A143197614A971EA621A82 /* PokerCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE95840E1792B284740C5951 /* PokerCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C5E3433584038FB2084676D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CF695EE9D31BF41F6B5381D /* Assets.xcassets */; };
+		C7C1945FD8AA562C69B7C2B2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CF695EE9D31BF41F6B5381D /* Assets.xcassets */; };
 		CC872F987026C422F2D5B22A /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABA60CF6E54D1014A1451FC /* PacketTunnelProvider.swift */; };
+		CE022FB71E2137AB31F25330 /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 1B5027C94F2A1BAF5605CDDE /* DequeModule */; };
 		CFBE5B8BF076ACB9BD262954 /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = 51CCCD4F385904098446A837 /* NIOFoundationCompat */; };
 		D6D6145E96551F540F88FA1D /* HAR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130FC3EE9E078108659291D9 /* HAR.swift */; };
 		DE69A35B9C42E09344C60743 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 9C272A32D14D1B636C5CD5FD /* NIOHTTP1 */; };
 		E12BFB5580DF6384A91714B5 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = BEB57944008FAE975C6D038F /* NIOHTTP1 */; };
+		F96F52CE4363D50EE2BCC83A /* WeakNetworkConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4B3396BF1630E0B6947F8A4 /* WeakNetworkConfiguration.swift */; };
+		FC23D9F1B9341EDD1A6BA466 /* CURLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7029F91D59A6D8D8268B7DED /* CURLExporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,14 +117,18 @@
 		30AF88A6927D62CDD702812F /* PokerDesktopApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokerDesktopApp.swift; sourceTree = "<group>"; };
 		33827629EE4990DC94EBBFA6 /* PokerDesktop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PokerDesktop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		343B134A26D45BAD2A3161B6 /* PokerMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokerMobileApp.swift; sourceTree = "<group>"; };
+		3CF695EE9D31BF41F6B5381D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		42DA73024F829A2D5597ECEE /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyServer.swift; sourceTree = "<group>"; };
 		5E79A72DB3153A14A597FF54 /* CertificateAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateAuthority.swift; sourceTree = "<group>"; };
+		7029F91D59A6D8D8268B7DED /* CURLExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CURLExporter.swift; sourceTree = "<group>"; };
 		81315EE1BF6290F2AC76BCF4 /* HTTPCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPCodec.swift; sourceTree = "<group>"; };
 		95A88D73F6C5C39712F0073B /* PokerCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PokerCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9ABA60CF6E54D1014A1451FC /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		A1D1463BE29E6A437CE10B12 /* RewriteRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteRule.swift; sourceTree = "<group>"; };
 		AFD9AB59FC723B2B1C0F32B3 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
 		B611671E2485FB350939A70A /* PokerPacketTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PokerPacketTunnel.entitlements; sourceTree = "<group>"; };
+		C4B3396BF1630E0B6947F8A4 /* WeakNetworkConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakNetworkConfiguration.swift; sourceTree = "<group>"; };
+		C8A7D6F8B4CBD7A59EC5DEB3 /* MarkdownExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownExporter.swift; sourceTree = "<group>"; };
 		CE95840E1792B284740C5951 /* PokerCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PokerCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F57CBE528115D65A43DE01AF /* CaptureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureViewModel.swift; sourceTree = "<group>"; };
 		F8E0983D307E4922EDED4559 /* PokerPacketTunnel.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PokerPacketTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -138,6 +152,7 @@
 				E12BFB5580DF6384A91714B5 /* NIOHTTP1 in Frameworks */,
 				264A281BA82BB9B160C065D3 /* NIOPosix in Frameworks */,
 				81DA94CA31274193A6929141 /* NIOSSL in Frameworks */,
+				CE022FB71E2137AB31F25330 /* DequeModule in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,6 +173,7 @@
 				DE69A35B9C42E09344C60743 /* NIOHTTP1 in Frameworks */,
 				B9C13478231220EF48640194 /* NIOPosix in Frameworks */,
 				BFAD6B3B5A6433E017903221 /* NIOSSL in Frameworks */,
+				7573378FC33176379303ABF2 /* DequeModule in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,10 +217,13 @@
 			children = (
 				AFD9AB59FC723B2B1C0F32B3 /* CaptureSession.swift */,
 				5E79A72DB3153A14A597FF54 /* CertificateAuthority.swift */,
+				7029F91D59A6D8D8268B7DED /* CURLExporter.swift */,
 				130FC3EE9E078108659291D9 /* HAR.swift */,
 				81315EE1BF6290F2AC76BCF4 /* HTTPCodec.swift */,
+				C8A7D6F8B4CBD7A59EC5DEB3 /* MarkdownExporter.swift */,
 				42DA73024F829A2D5597ECEE /* ProxyServer.swift */,
 				A1D1463BE29E6A437CE10B12 /* RewriteRule.swift */,
+				C4B3396BF1630E0B6947F8A4 /* WeakNetworkConfiguration.swift */,
 			);
 			name = PokerCore;
 			path = Sources/PokerCore;
@@ -217,8 +236,17 @@
 				70547926A95C4BF03CFFB79E /* PacketTunnel */,
 				184C36C57F5457E22AF84F1C /* PokerCore */,
 				0B3750C8F0C1521CF1F570EF /* PokerDesktop */,
+				627A7B1511612F2122C3F670 /* Resources */,
 				0CBE5AA38EA415D75D790E08 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		627A7B1511612F2122C3F670 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3CF695EE9D31BF41F6B5381D /* Assets.xcassets */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		70547926A95C4BF03CFFB79E /* PacketTunnel */ = {
@@ -239,6 +267,7 @@
 			buildConfigurationList = EFD00EDC2AE33416151EE8B4 /* Build configuration list for PBXNativeTarget "PokerMobile" */;
 			buildPhases = (
 				2DFD135E2FA99A857B233666 /* Sources */,
+				6DDA5218AB46EB5585350D59 /* Resources */,
 				6D07BC506023E3FB32F1C159 /* Frameworks */,
 				52406F6A68435BBF339C5A6C /* Embed Foundation Extensions */,
 				3FAC039DC14E10DABD65AA75 /* Embed Frameworks */,
@@ -261,6 +290,7 @@
 			buildConfigurationList = 26BF93C824309FCC1770E3CC /* Build configuration list for PBXNativeTarget "PokerDesktop" */;
 			buildPhases = (
 				17F4C92A5F5A28AA25ED84BF /* Sources */,
+				874CD6AEF5630275F6FC00EF /* Resources */,
 				1E1F90FBEF180F22EC9AC1D6 /* Frameworks */,
 				AC58C609000896A4013BCA57 /* Embed Frameworks */,
 			);
@@ -294,6 +324,7 @@
 				9C272A32D14D1B636C5CD5FD /* NIOHTTP1 */,
 				6E95C290DA17DBF68505BEFA /* NIOPosix */,
 				8A21527FD6FC7D89D66AB9AB /* NIOSSL */,
+				B237B1EAF81B9F3B5ADAD760 /* DequeModule */,
 			);
 			productName = PokerCore_iOS;
 			productReference = 95A88D73F6C5C39712F0073B /* PokerCore.framework */;
@@ -317,6 +348,7 @@
 				BEB57944008FAE975C6D038F /* NIOHTTP1 */,
 				3F7B476D275DAF0E4F7BED8B /* NIOPosix */,
 				043F6404927510EA731CB76B /* NIOSSL */,
+				1B5027C94F2A1BAF5605CDDE /* DequeModule */,
 			);
 			productName = PokerCore_macOS;
 			productReference = CE95840E1792B284740C5951 /* PokerCore.framework */;
@@ -369,6 +401,7 @@
 			mainGroup = 21D9EA83D565E535860B403F;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				6B4102B16DB351D7639B1541 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				244AD44394B4C1F62BD65711 /* XCRemoteSwiftPackageReference "swift-nio" */,
 				D3A436D58E59A42BF466016F /* XCRemoteSwiftPackageReference "swift-nio-ssl" */,
 			);
@@ -385,6 +418,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6DDA5218AB46EB5585350D59 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5E3433584038FB2084676D6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		874CD6AEF5630275F6FC00EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7C1945FD8AA562C69B7C2B2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		17F4C92A5F5A28AA25ED84BF /* Sources */ = {
@@ -408,12 +460,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				344E3309EEAE9C1711F7C563 /* CURLExporter.swift in Sources */,
 				3B2320AA86754564FA77D49C /* CaptureSession.swift in Sources */,
 				687FB1599ED3243F3763DAB7 /* CertificateAuthority.swift in Sources */,
 				3DC6E9E7AD3032B164980D6C /* HAR.swift in Sources */,
 				93CD34C92BB60D9DF9BC9A5E /* HTTPCodec.swift in Sources */,
+				552D25563C64E89BB4F80C70 /* MarkdownExporter.swift in Sources */,
 				6FBC38B899D2D4701209B5D2 /* ProxyServer.swift in Sources */,
 				7380D3FD600CCF6B631EA33B /* RewriteRule.swift in Sources */,
+				BAE5A8DBDA908B9CEAFDA3F9 /* WeakNetworkConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -429,12 +484,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC23D9F1B9341EDD1A6BA466 /* CURLExporter.swift in Sources */,
 				236231DA0C911E8931850F22 /* CaptureSession.swift in Sources */,
 				0E6BE04C365C43A650C86A78 /* CertificateAuthority.swift in Sources */,
 				D6D6145E96551F540F88FA1D /* HAR.swift in Sources */,
 				37CE15B17435567B7BDE1D27 /* HTTPCodec.swift in Sources */,
+				BEDA6AF7CED132C7E8CABDED /* MarkdownExporter.swift in Sources */,
 				4826ADEBDAC03EEE36F98E70 /* ProxyServer.swift in Sources */,
 				A37D7F4CA54CF5A1B261B959 /* RewriteRule.swift in Sources */,
+				F96F52CE4363D50EE2BCC83A /* WeakNetworkConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -856,6 +914,14 @@
 				minimumVersion = 2.101.3;
 			};
 		};
+		6B4102B16DB351D7639B1541 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.0;
+			};
+		};
 		D3A436D58E59A42BF466016F /* XCRemoteSwiftPackageReference "swift-nio-ssl" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio-ssl.git";
@@ -876,6 +942,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 244AD44394B4C1F62BD65711 /* XCRemoteSwiftPackageReference "swift-nio" */;
 			productName = NIOCore;
+		};
+		1B5027C94F2A1BAF5605CDDE /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B4102B16DB351D7639B1541 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
 		};
 		3F7B476D275DAF0E4F7BED8B /* NIOPosix */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -906,6 +977,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 244AD44394B4C1F62BD65711 /* XCRemoteSwiftPackageReference "swift-nio" */;
 			productName = NIOFoundationCompat;
+		};
+		B237B1EAF81B9F3B5ADAD760 /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B4102B16DB351D7639B1541 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
 		};
 		B374586889C6DDB4795CAEC8 /* NIOCore */ = {
 			isa = XCSwiftPackageProductDependency;

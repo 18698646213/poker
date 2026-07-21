@@ -1,5 +1,92 @@
 # Poker
 
+Poker 是一款使用 SwiftUI 和 SwiftNIO 开发的 HTTP/HTTPS 抓包与调试工具，支持 macOS 桌面端及 iOS 工程。
+
+## 功能
+
+- 捕获并按域名展示 HTTP/HTTPS 请求
+- 查看请求头、请求体、响应头和响应体
+- 搜索 URL、HTTP 方法和状态码
+- HTTPS MITM 解密及本地 CA 证书安装
+- 使用正则表达式自动重写 URL、请求头、响应头和响应体
+- 交互式拦截并修改请求参数或响应数据
+- 按指定域名限制拦截范围
+- 自定义上传、下载速度，模拟弱网环境
+- 多选日志并导出 Markdown
+- 批量导出图片响应
+- 右键复制请求为 cURL
+
+## 环境要求
+
+- macOS 14 或更高版本
+- Xcode
+- Swift 6
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+## 构建
+
+```bash
+git clone <repository-url>
+cd Poker
+xcodegen generate
+open Poker.xcodeproj
+```
+
+在 Xcode 中选择 `PokerDesktop` Scheme 后运行。
+
+也可以使用 Swift Package Manager：
+
+```bash
+swift build
+swift test
+swift run PokerDesktop
+```
+
+## 使用
+
+1. 启动 PokerDesktop，确认代理端口，默认端口为 `8888`。
+2. 点击“启动”开启代理。
+3. 将测试设备与 Mac 连接到同一局域网。
+4. 在设备网络设置中，将 HTTP 代理设为 Mac 的局域网 IP 和 Poker 端口。
+5. 如需抓取 HTTPS，请安装并完全信任 Poker Local CA。
+6. 打开目标应用或网页，流量会显示在 Poker 中。
+
+### 请求与响应拦截
+
+工具栏提供独立的“请求拦截”和“响应拦截”开关。开启后，可修改：
+
+- 请求方法、URL、Query 参数、请求头和文本请求体
+- 响应状态码、响应头和文本响应体
+
+修改完成后可应用并放行，也可原样放行。关闭拦截开关会自动放行对应阶段的全部待处理流量。通过“拦截范围”可指定域名；留空时匹配全部域名。
+
+### 弱网模式
+
+点击工具栏中的“弱网”按钮，可分别设置上传和下载速度，单位为 `KB/s`。当前弱网模式仅模拟带宽限制，不包含固定延迟或丢包。
+
+### 导出
+
+- 勾选多条日志后可导出为一个 Markdown 文件。
+- 如果所选日志全部为图片，可选择批量保存图片或导出 URL 日志。
+- 图片日志也可单独导出原始响应数据。
+
+## 测试
+
+```bash
+swift test
+```
+
+HTTPS 网络集成测试默认跳过，可通过以下命令启用：
+
+```bash
+POKER_RUN_NETWORK_TESTS=1 swift test
+```
+
+## 安全说明
+
+仅在你拥有或获准测试的设备和网络中使用本工具。抓包完成后，请关闭设备代理并删除不再需要的根证书。使用证书固定（Certificate Pinning）的应用可能无法被解密。
+# Poker
+
 Poker 是面向 macOS 与 iOS 的网络请求抓包客户端原型，使用 Swift、SwiftUI、
 SwiftNIO 和 NIOSSL 构建。
 

@@ -24,7 +24,11 @@ private struct MobileSetupView: View {
                         .textContentType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    TextField("端口", value: $proxyPort, format: .number)
+                    TextField(
+                        "端口",
+                        value: $proxyPort,
+                        format: .number.grouping(.never)
+                    )
                         .keyboardType(.numberPad)
                 } header: {
                     Text("连接 Mac 代理")
@@ -92,7 +96,9 @@ private struct MobileSetupView: View {
     }
 
     private var proxyAddress: String {
-        proxyHost.isEmpty ? "尚未配置" : "\(proxyHost):\(proxyPort)"
+        proxyHost.isEmpty
+            ? "尚未配置"
+            : proxyHost + ":" + String(proxyPort)
     }
 
     private func testProxy() {
